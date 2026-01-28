@@ -40,19 +40,29 @@ function setupEventListeners() {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             const section = item.dataset.section;
             switchSection(section);
         });
     });
 
+    // Prevent clicks inside sidebar from closing it
+    document.querySelector('.sidebar').addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
     // Mobile menu toggle
-    document.getElementById('menuToggle').addEventListener('click', () => {
+    document.getElementById('menuToggle').addEventListener('click', (e) => {
+        e.stopPropagation();
         document.querySelector('.sidebar').classList.toggle('open');
     });
 
-    // Close sidebar when clicking outside
-    document.querySelector('.main-content').addEventListener('click', () => {
-        document.querySelector('.sidebar').classList.remove('open');
+    // Close sidebar when clicking outside (only on mobile when sidebar is open)
+    document.querySelector('.main-content').addEventListener('click', (e) => {
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+        }
     });
 
     // Add expense form
