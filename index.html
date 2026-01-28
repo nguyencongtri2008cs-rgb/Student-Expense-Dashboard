@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Chi Tiêu Học Sinh</title>
+    <meta name="description" content="Ứng dụng theo dõi và bình chọn chi tiêu dành cho học sinh với biểu đồ thời gian thực">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🎓</span>
+                <span class="logo-text">Chi Tiêu<br><small>Học Sinh</small></span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span>Tổng quan</span>
+                </a>
+                <a href="#" class="nav-item" data-section="add">
+                    <span class="nav-icon">➕</span>
+                    <span>Thêm mới</span>
+                </a>
+                <a href="#" class="nav-item" data-section="expenses">
+                    <span class="nav-icon">📝</span>
+                    <span>Danh sách</span>
+                </a>
+                <a href="#" class="nav-item" data-section="vote">
+                    <span class="nav-icon">🗳️</span>
+                    <span>Bình chọn</span>
+                </a>
+                <a href="#" class="nav-item" data-section="stats">
+                    <span class="nav-icon">📈</span>
+                    <span>Thống kê</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-clear-data" id="clearDataBtn">
+                    <span>🗑️</span> Xóa dữ liệu
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">☰</button>
+                    <h1>Dashboard Chi Tiêu</h1>
+                </div>
+                <div class="header-right">
+                    <div class="date-display">
+                        <span id="currentDate"></span>
+                    </div>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section class="section active" id="dashboard">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon total">💰</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng chi tiêu</span>
+                            <span class="stat-value" id="totalExpense">0 ₫</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon month">📅</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Tháng này</span>
+                            <span class="stat-value" id="monthExpense">0 ₫</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon count">📋</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Số khoản chi</span>
+                            <span class="stat-value" id="expenseCount">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon votes">⭐</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Tổng votes</span>
+                            <span class="stat-value" id="totalVotes">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>📊 Chi tiêu theo danh mục</h3>
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>📈 Chi tiêu theo tháng</h3>
+                        <div class="chart-container">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Expenses -->
+                <div class="recent-expenses">
+                    <h3>🕐 Chi tiêu gần đây</h3>
+                    <div class="expense-list" id="recentExpenseList">
+                        <p class="empty-message">Chưa có khoản chi nào</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add Expense Section -->
+            <section class="section" id="add">
+                <div class="form-card">
+                    <h2>➕ Thêm khoản chi mới</h2>
+                    <form id="expenseForm">
+                        <div class="form-group">
+                            <label for="expenseName">Tên khoản chi</label>
+                            <input type="text" id="expenseName" placeholder="VD: Sách giáo khoa" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="expenseAmount">Số tiền (VNĐ)</label>
+                                <input type="number" id="expenseAmount" placeholder="150000" min="1000" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="expenseCategory">Danh mục</label>
+                                <select id="expenseCategory" required>
+                                    <option value="">Chọn danh mục</option>
+                                    <option value="study">📚 Học tập</option>
+                                    <option value="food">🍔 Ăn uống</option>
+                                    <option value="transport">🚌 Di chuyển</option>
+                                    <option value="entertainment">🎮 Giải trí</option>
+                                    <option value="clothing">👕 Quần áo</option>
+                                    <option value="health">💊 Y tế</option>
+                                    <option value="tech">📱 Công nghệ</option>
+                                    <option value="other">🎁 Khác</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="expenseDate">Ngày chi</label>
+                            <input type="date" id="expenseDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="expenseNote">Ghi chú (tùy chọn)</label>
+                            <textarea id="expenseNote" placeholder="Thêm ghi chú..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit">
+                            <span>💾</span> Lưu khoản chi
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Expenses List Section -->
+            <section class="section" id="expenses">
+                <div class="section-header">
+                    <h2>📝 Danh sách chi tiêu</h2>
+                    <div class="filter-group">
+                        <select id="filterCategory">
+                            <option value="">Tất cả danh mục</option>
+                            <option value="study">📚 Học tập</option>
+                            <option value="food">🍔 Ăn uống</option>
+                            <option value="transport">🚌 Di chuyển</option>
+                            <option value="entertainment">🎮 Giải trí</option>
+                            <option value="clothing">👕 Quần áo</option>
+                            <option value="health">💊 Y tế</option>
+                            <option value="tech">📱 Công nghệ</option>
+                            <option value="other">🎁 Khác</option>
+                        </select>
+                        <select id="sortBy">
+                            <option value="date-desc">Mới nhất</option>
+                            <option value="date-asc">Cũ nhất</option>
+                            <option value="amount-desc">Cao nhất</option>
+                            <option value="amount-asc">Thấp nhất</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="expense-table-wrapper">
+                    <table class="expense-table">
+                        <thead>
+                            <tr>
+                                <th>Danh mục</th>
+                                <th>Tên</th>
+                                <th>Số tiền</th>
+                                <th>Ngày</th>
+                                <th>Votes</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Vote Section -->
+            <section class="section" id="vote">
+                <div class="section-header">
+                    <h2>🗳️ Bình chọn khoản chi</h2>
+                    <p class="section-desc">Bình chọn các khoản chi cần thiết hoặc không cần thiết</p>
+                </div>
+                <div class="vote-cards" id="voteCards">
+                    <p class="empty-message">Chưa có khoản chi nào để bình chọn</p>
+                </div>
+                <div class="top-voted">
+                    <h3>🏆 Top khoản chi được bình chọn nhiều nhất</h3>
+                    <div class="top-voted-list" id="topVotedList">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="section" id="stats">
+                <h2>📈 Thống kê chi tiết</h2>
+                <div class="stats-detail-grid">
+                    <div class="chart-card full-width">
+                        <h3>📉 Xu hướng chi tiêu 7 ngày qua</h3>
+                        <div class="chart-container-large">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>🏷️ Phân bổ theo danh mục</h3>
+                        <div class="category-breakdown" id="categoryBreakdown">
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>📊 Thống kê nhanh</h3>
+                        <div class="quick-stats">
+                            <div class="quick-stat-item">
+                                <span class="qs-label">Chi tiêu cao nhất</span>
+                                <span class="qs-value" id="maxExpense">-</span>
+                            </div>
+                            <div class="quick-stat-item">
+                                <span class="qs-label">Chi tiêu thấp nhất</span>
+                                <span class="qs-value" id="minExpense">-</span>
+                            </div>
+                            <div class="quick-stat-item">
+                                <span class="qs-label">Trung bình/khoản</span>
+                                <span class="qs-value" id="avgExpense">-</span>
+                            </div>
+                            <div class="quick-stat-item">
+                                <span class="qs-label">Danh mục phổ biến</span>
+                                <span class="qs-value" id="topCategory">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✓</span>
+        <span class="toast-message" id="toastMessage">Thành công!</span>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✏️ Chỉnh sửa khoản chi</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label for="editName">Tên khoản chi</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editAmount">Số tiền (VNĐ)</label>
+                        <input type="number" id="editAmount" min="1000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCategory">Danh mục</label>
+                        <select id="editCategory" required>
+                            <option value="study">📚 Học tập</option>
+                            <option value="food">🍔 Ăn uống</option>
+                            <option value="transport">🚌 Di chuyển</option>
+                            <option value="entertainment">🎮 Giải trí</option>
+                            <option value="clothing">👕 Quần áo</option>
+                            <option value="health">💊 Y tế</option>
+                            <option value="tech">📱 Công nghệ</option>
+                            <option value="other">🎁 Khác</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editDate">Ngày chi</label>
+                    <input type="date" id="editDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="editNote">Ghi chú</label>
+                    <textarea id="editNote"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="cancelEdit">Hủy</button>
+                    <button type="submit" class="btn-submit">💾 Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
